@@ -3,45 +3,25 @@ package com.reyy.week10vp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.reyy.week10vp.ui.theme.Week10vpTheme
+import androidx.navigation.compose.rememberNavController
+import com.reyy.week10vp.data.remote.ApiConfig
+import com.reyy.week10vp.data.repository.UserRepository
+import com.reyy.week10vp.navigation.AppNavHost
+import com.reyy.week10vp.viewmodel.UserViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        val repository = UserRepository(ApiConfig.getApiService())
+        val userViewModel = UserViewModel(repository)
+
         setContent {
-            Week10vpTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
+            val navController = rememberNavController()
+            AppNavHost(
+                navController = navController,
+                userViewModel = userViewModel
+            )
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    Week10vpTheme {
-        Greeting("Android")
     }
 }
