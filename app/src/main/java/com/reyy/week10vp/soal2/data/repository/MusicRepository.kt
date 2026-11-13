@@ -3,15 +3,11 @@ package com.reyy.week10vp.soal2.data.repository
 import com.reyy.week10vp.soal2.data.remote.AudioDbApiService
 import com.reyy.week10vp.soal2.model.Album
 import com.reyy.week10vp.soal2.model.AlbumDetail
-import com.reyy.week10vp.soal2.model.Artist
 import com.reyy.week10vp.soal2.model.ArtistWithAlbums
-import com.reyy.week10vp.soal2.model.Track
 import com.reyy.week10vp.soal2.util.MusicResource
+import com.reyy.week10vp.soal2.util.safeCall
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import retrofit2.HttpException
-import java.io.IOException
-import java.util.Locale
 
 class MusicRepository(private val apiService: AudioDbApiService) {
     private val artistCache = mutableMapOf<String, ArtistWithAlbums>()
@@ -25,110 +21,71 @@ class MusicRepository(private val apiService: AudioDbApiService) {
             return MusicResource.Success(cached)
         }
 
-        return try {
-            coroutineScope {
-                val artistDeferred = async { apiService.searchArtist(query) }
-                val albumsDeferred = async { apiService.searchAlbums(query) }
+        return coroutineScope {
+            val artistDeferred = async { safeCall { apiService.searchArtist(query) } }
+            val albumsDeferred = async { safeCall { apiService.searchAlbums(query) } }
 
-                val artistDto = artistDeferred.await().artists?.firstOrNull()
-                    ?: return@coroutineScope MusicResource.Error("Artis \"$query\" tidak ditemukan")
+            val artistResult = artistDeferred.await()
+            val albumsResult = albumsDeferred.await()
 
-                val albumDtos = albumsDeferred.await().album ?: emptyList()
+            when (artistResult) {
+                is MusicResource.Error -> MusicResource.Error(artistResult.message)
+                is MusicResource.Loading -> MusicResource.Loading
+                is MusicResource.Success -> {
+                    val artistDto = artistResult.data.artists?.firstOrNull()
+                        ?: return@coroutineScope MusicResource.Error("Artis \"$query\" tidak ditemukan")
 
-                val artist = Artist(
-                    id = artistDto.idArtist ?: "",
-                    name = artistDto.strArtist ?: query,
-                    genre = artistDto.strGenre?.takeIf { it.isNotBlank() } ?: "Music",
-                    origin = artistDto.strCountry?.takeIf { it.isNotBlank() } ?: "Unknown Origin",
-                    biography = artistDto.strBiographyEN?.takeIf { it.isNotBlank() }
-                        ?: "Biografi artis belum tersedia.",
-                    bannerUrl = artistDto.strArtistBanner?.takeIf { it.isNotBlank() }
-                        ?: artistDto.strArtistFanart?.takeIf { it.isNotBlank() }
-                        ?: artistDto.strArtistThumb.orEmpty(),
-                    thumbUrl = artistDto.strArtistThumb.orEmpty()
-                )
+                    val artist = artistDto.toArtist(query)
+                    val albumDtos = (albumsResult as? MusicResource.Success)?.data?.album ?: emptyList()
+                    val albums = albumDtos.mapIndexed { index, dto ->
+                        dto.toAlbum(index = index, fallbackArtist = artist.name, fallbackGenre = artist.genre)
+                    }
 
-                val albums = albumDtos.mapIndexed { index, dto ->
-                    Album(
-                        id = dto.idAlbum ?: "album_$index",
-                        title = dto.strAlbum ?: "Unknown Album",
-                        artistName = dto.strArtist ?: artist.name,
-                        year = dto.intYearReleased?.takeIf { it.isNotBlank() } ?: "-",
-                        genre = dto.strGenre?.takeIf { it.isNotBlank() } ?: artist.genre,
-                        thumbUrl = dto.strAlbumThumb.orEmpty(),
-                        description = dto.strDescriptionEN?.takeIf { it.isNotBlank() }
-                            ?: "Deskripsi album belum tersedia."
-                    )
+                    val result = ArtistWithAlbums(artist = artist, albums = albums)
+                    artistCache[cacheKey] = result
+                    MusicResource.Success(result)
                 }
-
-                val result = ArtistWithAlbums(artist = artist, albums = albums)
-                artistCache[cacheKey] = result
-                MusicResource.Success(result)
             }
-        } catch (e: HttpException) {
-            MusicResource.Error("HTTP ${e.code()}: Gagal mengambil data dari server")
-        } catch (e: IOException) {
-            MusicResource.Error(e.localizedMessage ?: "Tidak ada koneksi internet")
-        } catch (e: Exception) {
-            MusicResource.Error(e.localizedMessage ?: "Terjadi kesalahan tidak terduga")
         }
     }
 
-    suspend fun getAlbumDetailWithTracks(fallbackAlbum: Album): MusicResource<AlbumDetail> {
-        albumDetailCache[fallbackAlbum.id]?.let { cached ->
+    suspend fun getAlbumDetailWithTracks(albumId: String): MusicResource<AlbumDetail> {
+        albumDetailCache[albumId]?.let { cached ->
             return MusicResource.Success(cached)
         }
 
-        return try {
-            coroutineScope {
-                val detailDeferred = async { apiService.getAlbumDetail(fallbackAlbum.id) }
-                val tracksDeferred = async { apiService.getAlbumTracks(fallbackAlbum.id) }
+        return coroutineScope {
+            val detailDeferred = async { safeCall { apiService.getAlbumDetail(albumId) } }
+            val tracksDeferred = async { safeCall { apiService.getAlbumTracks(albumId) } }
 
-                val detailDto = detailDeferred.await().album?.firstOrNull()
-                val trackDtos = tracksDeferred.await().track ?: emptyList()
+            val detailResult = detailDeferred.await()
+            val tracksResult = tracksDeferred.await()
 
-                val fullAlbum = Album(
-                    id = detailDto?.idAlbum ?: fallbackAlbum.id,
-                    title = detailDto?.strAlbum ?: fallbackAlbum.title,
-                    artistName = detailDto?.strArtist ?: fallbackAlbum.artistName,
-                    year = detailDto?.intYearReleased?.takeIf { it.isNotBlank() } ?: fallbackAlbum.year,
-                    genre = detailDto?.strGenre?.takeIf { it.isNotBlank() } ?: fallbackAlbum.genre,
-                    thumbUrl = detailDto?.strAlbumThumb?.takeIf { it.isNotBlank() } ?: fallbackAlbum.thumbUrl,
-                    description = detailDto?.strDescriptionEN?.takeIf { it.isNotBlank() }
-                        ?: fallbackAlbum.description
-                )
-
-                val tracks = trackDtos.mapIndexed { index, dto ->
-                    val rawNumber = dto.intTrackNumber?.toIntOrNull() ?: (index + 1)
-                    val formattedNumber = String.format(Locale.US, "%02d", rawNumber)
-
-                    Track(
-                        id = dto.idTrack ?: "track_$index",
-                        number = formattedNumber,
-                        title = dto.strTrack ?: "Track ${index + 1}",
-                        genre = dto.strGenre?.takeIf { it.isNotBlank() } ?: fullAlbum.genre,
-                        durationFormatted = formatDuration(dto.intDuration)
+            when (detailResult) {
+                is MusicResource.Error -> MusicResource.Error(detailResult.message)
+                is MusicResource.Loading -> MusicResource.Loading
+                is MusicResource.Success -> {
+                    val detailDto = detailResult.data.album?.firstOrNull()
+                    val fullAlbum = detailDto?.toAlbum() ?: Album(
+                        id = albumId,
+                        title = "Detail Album",
+                        artistName = "Artist",
+                        year = "-",
+                        genre = "Music",
+                        thumbUrl = "",
+                        description = "Deskripsi album belum tersedia."
                     )
+
+                    val trackDtos = (tracksResult as? MusicResource.Success)?.data?.track ?: emptyList()
+                    val tracks = trackDtos.mapIndexed { index, dto ->
+                        dto.toTrack(index = index, fallbackGenre = fullAlbum.genre)
+                    }
+
+                    val result = AlbumDetail(album = fullAlbum, tracks = tracks)
+                    albumDetailCache[albumId] = result
+                    MusicResource.Success(result)
                 }
-
-                val result = AlbumDetail(album = fullAlbum, tracks = tracks)
-                albumDetailCache[fallbackAlbum.id] = result
-                MusicResource.Success(result)
             }
-        } catch (e: HttpException) {
-            MusicResource.Error("HTTP ${e.code()}: Gagal memuat detail album")
-        } catch (e: IOException) {
-            MusicResource.Error(e.localizedMessage ?: "Tidak ada koneksi internet")
-        } catch (e: Exception) {
-            MusicResource.Error(e.localizedMessage ?: "Terjadi kesalahan saat memuat track")
         }
-    }
-
-    private fun formatDuration(durationMsString: String?): String {
-        val totalMs = durationMsString?.toLongOrNull() ?: return "00:00"
-        val totalSeconds = totalMs / 1000
-        val minutes = totalSeconds / 60
-        val seconds = totalSeconds % 60
-        return String.format(Locale.US, "%02d:%02d", minutes, seconds)
     }
 }

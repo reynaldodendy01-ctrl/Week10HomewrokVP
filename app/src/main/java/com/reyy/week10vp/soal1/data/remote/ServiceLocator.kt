@@ -9,8 +9,10 @@ import java.util.concurrent.TimeUnit
 
 object ServiceLocator {
     private const val BASE_URL = "https://www.pokemonpricetracker.com/api/v2/"
-    private const val API_KEY = "pokeprice_free_872228d2a8e95bf268f039ab5da18f95184d1f0d22a9dc86"
+    //    private const val API_KEY = "pokeprice_free_872228d2a8e95bf268f039ab5da18f95184d1f0d22a9dc86"
+    // const val API_KEY = "pokeprice_free_46a78af0b7d80dd053ae8b8f58c43e0caa6457f299c7188f"
 
+    private const val API_KEY = "pokeprice_free_2e0920641ba36ea2f6340386c57ee0cca2488c892ddd9fd7"
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }

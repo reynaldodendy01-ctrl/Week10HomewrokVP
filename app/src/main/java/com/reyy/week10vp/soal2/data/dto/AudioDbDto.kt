@@ -11,7 +11,7 @@ data class ArtistDto(
     @SerializedName("strArtist") val strArtist: String?,
     @SerializedName("strGenre") val strGenre: String?,
     @SerializedName("strCountry") val strCountry: String?,
-    @SerializedName(value = "strBiography", alternate = ["strBiographyEN"]) val strBiographyEN: String?,
+    @SerializedName(value = "strBiography", alternate = ["strBiographyEN"]) val strBiography: String?,
     @SerializedName("strArtistBanner") val strArtistBanner: String?,
     @SerializedName("strArtistThumb") val strArtistThumb: String?,
     @SerializedName("strArtistFanart") val strArtistFanart: String?
@@ -29,7 +29,7 @@ data class AlbumDto(
     @SerializedName("intYearReleased") val intYearReleased: String?,
     @SerializedName("strGenre") val strGenre: String?,
     @SerializedName("strAlbumThumb") val strAlbumThumb: String?,
-    @SerializedName(value = "strDescription", alternate = ["strDescriptionEN"]) val strDescriptionEN: String?
+    @SerializedName(value = "strDescription", alternate = ["strDescriptionEN"]) val strDescription: String?
 )
 
 data class TrackResponseDto(

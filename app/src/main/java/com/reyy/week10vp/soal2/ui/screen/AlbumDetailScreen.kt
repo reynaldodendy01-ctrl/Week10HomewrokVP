@@ -26,14 +26,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.reyy.week10vp.soal2.model.Album
 import com.reyy.week10vp.soal2.util.MusicResource
-import com.reyy.week10vp.soal2.viewmodel.MusicViewModel
+import com.reyy.week10vp.soal2.viewmodel.AlbumDetailViewModel
 
 @Composable
 fun AlbumDetailScreen(
-    album: Album,
-    viewModel: MusicViewModel,
+    viewModel: AlbumDetailViewModel,
     onBack: () -> Unit
 ) {
     val detailState by viewModel.albumDetailState.collectAsState()
@@ -114,7 +112,7 @@ fun AlbumDetailScreen(
                     )
                     Spacer(modifier = Modifier.height(18.dp))
                     Button(
-                        onClick = { viewModel.openAlbumDetail(album) },
+                        onClick = { viewModel.loadAlbumDetail() },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1DB954)),
                         shape = CircleShape
                     ) {

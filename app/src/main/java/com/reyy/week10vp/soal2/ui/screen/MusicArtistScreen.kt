@@ -37,11 +37,11 @@ import coil.compose.AsyncImage
 import com.reyy.week10vp.soal2.model.Album
 import com.reyy.week10vp.soal2.ui.widgets.AlbumCardItem
 import com.reyy.week10vp.soal2.util.MusicResource
-import com.reyy.week10vp.soal2.viewmodel.MusicViewModel
+import com.reyy.week10vp.soal2.viewmodel.ArtistViewModel
 
 @Composable
 fun MusicArtistScreen(
-    viewModel: MusicViewModel,
+    viewModel: ArtistViewModel,
     onAlbumClick: (Album) -> Unit
 ) {
     val artistState by viewModel.artistState.collectAsState()
