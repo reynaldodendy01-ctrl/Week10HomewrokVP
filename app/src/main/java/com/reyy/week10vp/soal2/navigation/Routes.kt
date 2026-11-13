@@ -1,8 +1,11 @@
 package com.reyy.week10vp.soal2.navigation
 
-sealed class Routes(val route: String) {
-    object MusicArtist : Routes("music_artist")
-    object AlbumDetail : Routes("album_detail/{albumId}") {
-        fun createRoute(albumId: String): String = "album_detail/$albumId"
-    }
+import kotlinx.serialization.Serializable
+
+sealed interface Routes {
+    @Serializable
+    data object MusicArtist : Routes
+
+    @Serializable
+    data class AlbumDetail(val albumId: String) : Routes
 }

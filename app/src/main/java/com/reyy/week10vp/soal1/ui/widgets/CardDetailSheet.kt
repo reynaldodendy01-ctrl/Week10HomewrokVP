@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -95,10 +96,11 @@ fun CardDetailSheet(
             }
 
             Text(
-                text = "${card.name} - ${card.number}",
+                text = "${card.name}\n${card.number}",
                 color = Color.White,
                 fontSize = 22.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -120,7 +122,7 @@ fun CardDetailSheet(
                         .weight(1f)
                         .clip(RoundedCornerShape(14.dp))
                         .background(Color(0xFF19212C))
-                        .border(1.dp, Color(0xFF1D4ED8).copy(alpha = 0.2f), RoundedCornerShape(14.dp))
+                        .border(1.dp, Color(0xFF10B981).copy(alpha = 0.35f), RoundedCornerShape(14.dp))
                         .padding(14.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -154,7 +156,7 @@ fun CardDetailSheet(
                         .weight(1f)
                         .clip(RoundedCornerShape(14.dp))
                         .background(Color(0xFF19212C))
-                        .border(1.dp, Color(0xFF2D3343), RoundedCornerShape(14.dp))
+                        .border(1.dp, Color(0xFFFBBF24).copy(alpha = 0.30f), RoundedCornerShape(14.dp))
                         .padding(14.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {

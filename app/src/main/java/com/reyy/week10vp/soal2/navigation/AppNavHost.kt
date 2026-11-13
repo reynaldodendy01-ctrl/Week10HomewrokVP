@@ -2,11 +2,10 @@ package com.reyy.week10vp.soal2.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import androidx.navigation.toRoute
 import com.reyy.week10vp.soal2.data.remote.ServiceLocator
 import com.reyy.week10vp.soal2.ui.screen.AlbumDetailScreen
 import com.reyy.week10vp.soal2.ui.screen.MusicArtistScreen
@@ -14,29 +13,27 @@ import com.reyy.week10vp.soal2.viewmodel.AlbumDetailViewModel
 import com.reyy.week10vp.soal2.viewmodel.ArtistViewModel
 
 @Composable
-fun AppNavHost(artistViewModel: ArtistViewModel) {
+fun AppNavHost() {
     val navController = rememberNavController()
+    val artistViewModel = remember { ArtistViewModel(ServiceLocator.musicRepository) }
 
     NavHost(
         navController = navController,
-        startDestination = Routes.MusicArtist.route
+        startDestination = Routes.MusicArtist
     ) {
-        composable(Routes.MusicArtist.route) {
+        composable<Routes.MusicArtist> {
             MusicArtistScreen(
                 viewModel = artistViewModel,
                 onAlbumClick = { album ->
-                    navController.navigate(Routes.AlbumDetail.createRoute(album.id))
+                    navController.navigate(Routes.AlbumDetail(albumId = album.id))
                 }
             )
         }
 
-        composable(
-            route = Routes.AlbumDetail.route,
-            arguments = listOf(navArgument("albumId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val albumId = backStackEntry.arguments?.getString("albumId").orEmpty()
-            val detailViewModel = remember(albumId) {
-                AlbumDetailViewModel(ServiceLocator.musicRepository, albumId)
+        composable<Routes.AlbumDetail> { backStackEntry ->
+            val route = backStackEntry.toRoute<Routes.AlbumDetail>()
+            val detailViewModel = remember(route.albumId) {
+                AlbumDetailViewModel(ServiceLocator.musicRepository, route.albumId)
             }
 
             AlbumDetailScreen(
