@@ -1,5 +1,6 @@
 package com.reyy.week10vp.soal1.ui.screen
 
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,7 +9,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,10 +35,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.reyy.week10vp.soal1.ui.widgets.CardDetailSheet
 import com.reyy.week10vp.soal1.ui.widgets.PokemonCardItem
-import com.reyy.week10vp.soal1.util.Resource
 import com.reyy.week10vp.soal1.viewmodel.PokemonViewModel
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.remember
+import com.reyy.week10vp.soal1.util.Resource
+import androidx.compose.foundation.lazy.grid.items
 
 @Composable
 fun PokeTrackerScreen(viewModel: PokemonViewModel) {
